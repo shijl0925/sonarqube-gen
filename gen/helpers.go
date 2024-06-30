@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strings"
 )
 
 func exit(code int, s interface{}) {
@@ -121,4 +122,19 @@ func ifError(action Action, s string) *Statement {
 			),
 		),
 	)
+}
+
+func replaceTags(str string) string {
+	repl := strings.NewReplacer(
+		"\n", "\n// ",
+		"<br> ", "\n// ",
+		"<br>", "\n// ",
+		"<br/>", "\n// ",
+		"<br />", "\n// ",
+		"<ul>", "\n// ",
+		"<li>", " * ",
+		"</li>", "\n// ",
+		"</ul>", "",
+	)
+	return repl.Replace(str)
 }

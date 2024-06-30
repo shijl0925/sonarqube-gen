@@ -121,8 +121,23 @@ func (s *Service) process(output string) error {
 
 func (s *Service) postServiceFunc(action Action, endpoint string) *Statement {
 	// start function signature without return type
+	comment := fmt.Sprintf("// %s - %s", action.serviceFuncName(), replaceTags(action.Description))
+	if action.Since != "" {
+		comment += fmt.Sprintf("\n// Since %s", action.Since)
+	}
+	if action.DeprecatedSince != "" {
+		comment += fmt.Sprintf("\n// Deprecated since %s", action.DeprecatedSince)
+	}
+	if action.ChangeLog != nil {
+		comment += "\n// Changelog:"
+		for _, change := range action.ChangeLog {
+			comment += fmt.Sprintf("\n//   %s: %s", change.Version, replaceTags(change.Description))
+		}
+	}
+	statement := Comment(comment).Line()
+
 	// func(s *<service id>) <action id>(r <request type>)
-	statement := Func().Parens(Id("s").Op("*").Id(s.id())).Id(action.serviceFuncName())
+	statement.Func().Parens(Id("s").Op("*").Id(s.id())).Id(action.serviceFuncName())
 	statement.Params(
 		Id("ctx").Qual("context", "Context"),
 		Id("r").Qual(qualifier(endpoint), action.requestTypeName()),
@@ -213,8 +228,23 @@ func nonHTTP2xxErrorHandling(action Action) *Statement {
 
 func (s *Service) getServiceFunc(action Action, endpoint string) *Statement {
 	// start function signature without return type
+	comment := fmt.Sprintf("// %s - %s", action.serviceFuncName(), replaceTags(action.Description))
+	if action.Since != "" {
+		comment += fmt.Sprintf("\n// Since %s", action.Since)
+	}
+	if action.DeprecatedSince != "" {
+		comment += fmt.Sprintf("\n// Deprecated since %s", action.DeprecatedSince)
+	}
+	if action.ChangeLog != nil {
+		comment += "\n// Changelog:"
+		for _, change := range action.ChangeLog {
+			comment += fmt.Sprintf("\n//   %s: %s", change.Version, replaceTags(change.Description))
+		}
+	}
+	statement := Comment(comment).Line()
+
 	// func(s *<service id>) <action id>(r <request type>)
-	statement := Func().Parens(Id("s").Op("*").Id(s.id())).Id(action.serviceFuncName())
+	statement.Func().Parens(Id("s").Op("*").Id(s.id())).Id(action.serviceFuncName())
 	statement.Params(
 		Id("ctx").Qual("context", "Context"),
 		Id("r").Qual(qualifier(endpoint), action.requestTypeName()),

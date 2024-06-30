@@ -18,7 +18,12 @@ type Action struct {
 	Post               bool    `json:"post"`
 	HasResponseExample bool    `json:"hasResponseExample"`
 	Params             []Param `json:"params"`
-	DeprecatedSince    string  `json:"deprecatedSince"`
+	ChangeLog          []struct {
+		Version     string `json:"version"`
+		Description string `json:"description"`
+	} `json:"changelog"`
+	Since           string `json:"since"`
+	DeprecatedSince string `json:"deprecatedSince"`
 }
 
 type Param struct {
@@ -26,11 +31,34 @@ type Param struct {
 	Description     string `json:"description"`
 	Internal        bool   `json:"internal"`
 	Required        bool   `json:"required"`
+	Since           string `json:"since"`
 	DeprecatedSince string `json:"deprecatedSince"`
 }
 
-func (p *Param) render() *Statement {
-	return renderId(p.Key).String().Tag(map[string]string{"form": p.Key + ",omitempty"}).Comment(p.Description)
+func (p *Param) render(post bool) *Statement {
+	var tag string
+	if post {
+		tag = "json"
+	} else {
+		tag = "url"
+	}
+
+	key := p.Key
+	if !p.Required {
+		key = fmt.Sprintf("%s,omitempty", key)
+	}
+
+	var comment string
+	if p.Since != "" {
+		comment += fmt.Sprintf("Since %s;", p.Since)
+	}
+	if p.DeprecatedSince != "" {
+		comment += fmt.Sprintf("Deprecated since %s;", p.DeprecatedSince)
+	}
+	if p.Description != "" {
+		comment += p.Description
+	}
+	return renderId(p.Key).String().Tag(map[string]string{tag: key}).Comment(comment)
 }
 
 type ResponseExampleRequest struct {
@@ -132,7 +160,7 @@ func (g *RequestStructGenerator) generate() *Statement {
 			continue
 		}
 
-		fields[i] = param.render()
+		fields[i] = param.render(g.action.Post)
 	}
 
 	statement := Commentf("%s %s", g.action.requestTypeName(), g.action.Description)
