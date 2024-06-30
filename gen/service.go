@@ -123,7 +123,10 @@ func (s *Service) postServiceFunc(action Action, endpoint string) *Statement {
 	// start function signature without return type
 	// func(s *<service id>) <action id>(r <request type>)
 	statement := Func().Parens(Id("s").Op("*").Id(s.id())).Id(action.serviceFuncName())
-	statement.Params(Id("r").Qual(qualifier(endpoint), action.requestTypeName()))
+	statement.Params(
+		Id("ctx").Qual("context", "Context"),
+		Id("r").Qual(qualifier(endpoint), action.requestTypeName()),
+	)
 
 	// add return type based on whether we expect a response
 	if action.HasResponseExample {
@@ -151,6 +154,7 @@ func (s *Service) postServiceFunc(action Action, endpoint string) *Statement {
 		Line(),
 		// _, err := s.client.Call("POST", u, r, v)
 		Id("_, err").Op(":=").Id("s").Dot("client").Dot("Call").Call(
+			Id("ctx"),
 			Lit("POST"),
 			Id("u"),
 			ifTrueGenOrNil(
@@ -212,6 +216,7 @@ func (s *Service) getServiceFunc(action Action, endpoint string) *Statement {
 	// func(s *<service id>) <action id>(r <request type>)
 	statement := Func().Parens(Id("s").Op("*").Id(s.id())).Id(action.serviceFuncName())
 	statement.Params(
+		Id("ctx").Qual("context", "Context"),
 		Id("r").Qual(qualifier(endpoint), action.requestTypeName()),
 		ifTrueGen(action.hasPaging(), Id("p").Qual(qualifier("paging"), "Params")),
 	)
@@ -242,6 +247,7 @@ func (s *Service) getServiceFunc(action Action, endpoint string) *Statement {
 		Line(),
 		// _, err := s.client.Call("GET", u, r, v)
 		Id("_, err").Op(":=").Id("s").Dot("client").Dot("Call").Call(
+			Id("ctx"),
 			Lit("GET"),
 			Id("u"),
 			ifTrueGenOrNil(
@@ -274,6 +280,7 @@ func (s *Service) getAllServiceFunc(action Action, endpoint string, field Field)
 	// func(s *<service id>) <action id>All(r <request type>)
 	statement := Func().Parens(Id("s").Op("*").Id(s.id())).Id(action.serviceAllFuncName())
 	statement.Params(
+		Id("ctx").Qual("context", "Context"),
 		Id("r").Qual(qualifier(endpoint), action.requestTypeName()),
 	)
 
@@ -328,7 +335,7 @@ func (s *Service) getAllServiceFunc(action Action, endpoint string, field Field)
 		//	if err != nil {
 		//		return nil, fmt.Errorf("error during <action id>All: %+v", err)
 		//	}
-		Id("res").Op(",").Err().Op(":=").Id("s").Dot(action.serviceFuncName()).Call(Id("r"), Id("p")),
+		Id("res").Op(",").Err().Op(":=").Id("s").Dot(action.serviceFuncName()).Call(Id("ctx"), Id("r"), Id("p")),
 		ifError(action, fmt.Sprintf("error during call to %s.%s: %%+v", endpoint, action.serviceFuncName())),
 	)
 
