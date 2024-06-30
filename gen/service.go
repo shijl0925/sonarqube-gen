@@ -9,13 +9,15 @@ import (
 	"strings"
 )
 
+const urlPrefix = "api/"
+
 type Service struct {
 	Path        string   `json:"path"`
 	Description string   `json:"description"`
 	Actions     []Action `json:"actions"`
 }
 
-func (s *Service) id() string {
+func (s *Service) Getter() string {
 	return strcase.ToCamel(s.endpoint())
 }
 
@@ -41,7 +43,7 @@ func (s *Service) process(output string) error {
 	serviceFile.ImportName(qualifier("paging"), "paging")
 	serviceFile.Commentf("// AUTOMATICALLY GENERATED, DO NOT EDIT BY HAND!\n")
 
-	serviceType := Type().Id(s.id()).Id("service")
+	serviceType := Type().Id(s.Getter()).Id("service")
 	serviceFile.Add(serviceType)
 
 	for _, action := range s.Actions {
@@ -140,7 +142,7 @@ func (s *Service) postServiceFunc(action Action, endpoint string) *Statement {
 	statement := Comment(comment).Line()
 
 	// func(s *<service id>) <action id>(r <request type>)
-	statement.Func().Parens(Id("s").Op("*").Id(s.id())).Id(action.serviceFuncName())
+	statement.Func().Parens(Id("s").Op("*").Id(s.Getter())).Id(action.serviceFuncName())
 	statement.Params(
 		Id("ctx").Qual("context", "Context"),
 		Id("r").Qual(qualifier(endpoint), action.requestTypeName()),
@@ -247,7 +249,7 @@ func (s *Service) getServiceFunc(action Action, endpoint string) *Statement {
 	statement := Comment(comment).Line()
 
 	// func(s *<service id>) <action id>(r <request type>)
-	statement.Func().Parens(Id("s").Op("*").Id(s.id())).Id(action.serviceFuncName())
+	statement.Func().Parens(Id("s").Op("*").Id(s.Getter())).Id(action.serviceFuncName())
 	statement.Params(
 		Id("ctx").Qual("context", "Context"),
 		Id("r").Qual(qualifier(endpoint), action.requestTypeName()),
@@ -311,7 +313,7 @@ func (s *Service) getServiceFunc(action Action, endpoint string) *Statement {
 func (s *Service) getAllServiceFunc(action Action, endpoint string, field Field) *Statement {
 	// start function signature without return type
 	// func(s *<service id>) <action id>All(r <request type>)
-	statement := Func().Parens(Id("s").Op("*").Id(s.id())).Id(action.serviceAllFuncName())
+	statement := Func().Parens(Id("s").Op("*").Id(s.Getter())).Id(action.serviceAllFuncName())
 	statement.Params(
 		Id("ctx").Qual("context", "Context"),
 		Id("r").Qual(qualifier(endpoint), action.requestTypeName()),

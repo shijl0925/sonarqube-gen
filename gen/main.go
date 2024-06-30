@@ -87,6 +87,20 @@ func main() {
 		fmt.Errorf("could not decode response: %+v", err)
 	}
 
+	// create sonarqube.go
+	path := fmt.Sprintf("%s/%s", packageName, clientFileName)
+	file, err := os.Create(path)
+	if err != nil {
+		fmt.Errorf("failed to create file：%w", err)
+	}
+
+	if err := renderClient(
+		file,
+		&api,
+	); err != nil {
+		fmt.Printf("failed to render client: %s", err.Error())
+	}
+
 	wg := &sync.WaitGroup{}
 	for _, service := range api.Services {
 		fmt.Printf("processing service at path %s\n", service.Path)		s := service
