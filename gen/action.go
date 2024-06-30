@@ -125,11 +125,15 @@ func NewResponseFieldsGenerator(parser *FieldParser) *ResponseFieldsGenerator {
 	return &ResponseFieldsGenerator{parser: parser}
 }
 
-func (g *ResponseFieldsGenerator) generate(responseTypeName string, example map[string]interface{}) (Field, error) {
-	if _, ok := example["format"]; ok {
-		return &StringField{name: responseTypeName}, nil
+func (g *ResponseFieldsGenerator) generate(responseTypeName string, example interface{}) (Field, error) {
+	if reflect.TypeOf(example) == reflect.TypeOf([]interface{}{}) {
+		return g.parser.NewSliceField(responseTypeName, example.([]interface{})), nil
+	} else {
+		if _, ok := example.(map[string]interface{})["format"]; ok {
+			return &StringField{name: responseTypeName}, nil
+		}
+		return g.parser.NewMapField(responseTypeName, example.(map[string]interface{})), nil
 	}
-	return g.parser.NewMapField(responseTypeName, example), nil
 }
 
 func (g *ResponseFieldsGenerator) generatedWithoutPaging(responseAllTypeName string, example map[string]interface{}) (Field, error) {
@@ -226,7 +230,22 @@ func (a *Action) responseAllStruct(collection Field) *Statement {
 	return Empty()
 }
 
-func (a *Action) fetchExample(endpoint string) (map[string]interface{}, error) {
+// checkJSONType 动态判断JSON字符串的类型，并返回相应的接口类型。
+func checkJSONType(body []byte) interface{} {
+	// 预防空切片导致的panic
+	if len(body) == 0 {
+		return nil
+	}
+
+	// 使用更健壮的方式判断JSON类型，这里以检查是否以"["开头作为切片的简要示例
+	// 实际应用中可能需要更复杂的逻辑，比如解析部分JSON来确定结构
+	if body[0] == '[' {
+		return []interface{}{}
+	}
+	return map[string]interface{}{}
+}
+
+func (a *Action) fetchExample(endpoint string) (interface{}, error) {
 	controller := fmt.Sprintf("api/%s", endpoint)
 	request := ResponseExampleRequest{ID: a.responseTypeName(), RequestID: a.id(), Controller: controller, Action: a.Key}
 
@@ -256,14 +275,18 @@ func (a *Action) fetchExample(endpoint string) (map[string]interface{}, error) {
 
 	if responseExample.Format == "json" {
 		// Convert the example JSON string (!!) to a map
-		var example map[string]interface{}
+		example := checkJSONType([]byte(responseExample.Example))
+		if example == nil {
+			return nil, fmt.Errorf("无法确定JSON类型：空输入")
+		}
+
 		err := json.Unmarshal([]byte(responseExample.Example), &example)
 		if err != nil {
 			return nil, fmt.Errorf("could not marshall example: %+v", err)
 		}
 
 		return example, nil
-	} else if responseExample.Format == "txt" || responseExample.Format == "xml" || responseExample.Format == "svg" || responseExample.Format == "log" {
+	} else if responseExample.Format == "txt" || responseExample.Format == "xml" || responseExample.Format == "svg" || responseExample.Format == "log" || responseExample.Format == "proto" {
 		// parse txt / xml / svg / log response
 		example := map[string]interface{}{
 			"example": responseExample.Example,

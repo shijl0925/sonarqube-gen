@@ -45,6 +45,9 @@ func (s *Service) process(output string) error {
 	serviceFile.Add(serviceType)
 
 	for _, action := range s.Actions {
+		if s.Path == "api/sources" && action.Key == "index" {
+			continue
+		}
 		fmt.Printf("Processing '%s' - '%s'\n", s.endpoint(), action.Key)
 
 		requestStructGenerator := NewRequestStructGenerator(s, &action)
@@ -68,7 +71,7 @@ func (s *Service) process(output string) error {
 			}
 
 			if action.hasPaging() {
-				responseFieldWithoutPaging, err = responseFieldsGenerator.generatedWithoutPaging(action.responseAllTypeName(), example)
+				responseFieldWithoutPaging, err = responseFieldsGenerator.generatedWithoutPaging(action.responseAllTypeName(), example.(map[string]interface{}))
 				if err != nil {
 					return fmt.Errorf("could not extract collection field: %+v", err)
 				}
