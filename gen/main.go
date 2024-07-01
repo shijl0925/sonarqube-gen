@@ -103,7 +103,7 @@ func main() {
 
 	wg := &sync.WaitGroup{}
 	for _, service := range api.Services {
-		fmt.Printf("processing service at path %s\n", service.Path)		s := service
+		fmt.Printf("processing service at path %s\n", service.Path)
 
 		s := service
 

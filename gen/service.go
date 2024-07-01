@@ -161,11 +161,12 @@ func (s *Service) postServiceFunc(action Action, endpoint string) *Statement {
 
 	// function body
 	statement.Block(
-		// u := fmt.Sprintf("%s/<endpoint>", API)
+		// u := fmt.Sprintf("%s/<key>", s.path)
 		Id("u").Op(":=").Qual("fmt", "Sprintf").Call(
-			Lit(fmt.Sprintf("%%s/%s/%s", s.endpoint(), action.Key)),
-			Id("API"),
+			Lit(fmt.Sprintf("%%s/%s", action.Key)),
+			Id("s").Dot("path"),
 		),
+
 		ifTrueGen(
 			action.HasResponseExample,
 			// v := new(projects.BulkUpdateKeyResponse)
@@ -269,11 +270,12 @@ func (s *Service) getServiceFunc(action Action, endpoint string) *Statement {
 
 	// function body
 	statement.Block(
-		// u := fmt.Sprintf("%s/<endpoint>", API)
+		// u := fmt.Sprintf("%s/<key>", s.path)
 		Id("u").Op(":=").Qual("fmt", "Sprintf").Call(
-			Lit(fmt.Sprintf("%%s/%s/%s", s.endpoint(), action.Key)),
-			Id("API"),
+			Lit(fmt.Sprintf("%%s/%s", action.Key)),
+			Id("s").Dot("path"),
 		),
+
 		ifTrueGen(
 			action.HasResponseExample,
 			// v := new(projects.BulkUpdateKeyResponse)
