@@ -38,7 +38,7 @@ type Param struct {
 func (p *Param) render(post bool) *Statement {
 	var tag string
 	if post {
-		tag = "json"
+		tag = "form"
 	} else {
 		tag = "url"
 	}
@@ -230,15 +230,15 @@ func (a *Action) responseAllStruct(collection Field) *Statement {
 	return Empty()
 }
 
-// checkJSONType ¶¯Ì¬ÅÐ¶ÏJSON×Ö·û´®µÄÀàÐÍ£¬²¢·µ»ØÏàÓ¦µÄ½Ó¿ÚÀàÐÍ¡£
+// checkJSONType ï¿½ï¿½Ì¬ï¿½Ð¶ï¿½JSONï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½Ä½Ó¿ï¿½ï¿½ï¿½ï¿½Í¡ï¿½
 func checkJSONType(body []byte) interface{} {
-	// Ô¤·À¿ÕÇÐÆ¬µ¼ÖÂµÄpanic
+	// Ô¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¬ï¿½ï¿½ï¿½Âµï¿½panic
 	if len(body) == 0 {
 		return nil
 	}
 
-	// Ê¹ÓÃ¸ü½¡×³µÄ·½Ê½ÅÐ¶ÏJSONÀàÐÍ£¬ÕâÀïÒÔ¼ì²éÊÇ·ñÒÔ"["¿ªÍ·×÷ÎªÇÐÆ¬µÄ¼òÒªÊ¾Àý
-	// Êµ¼ÊÓ¦ÓÃÖÐ¿ÉÄÜÐèÒª¸ü¸´ÔÓµÄÂß¼­£¬±ÈÈç½âÎö²¿·ÖJSONÀ´È·¶¨½á¹¹
+	// Ê¹ï¿½Ã¸ï¿½ï¿½ï¿½×³ï¿½Ä·ï¿½Ê½ï¿½Ð¶ï¿½JSONï¿½ï¿½ï¿½Í£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½"["ï¿½ï¿½Í·ï¿½ï¿½Îªï¿½ï¿½Æ¬ï¿½Ä¼ï¿½ÒªÊ¾ï¿½ï¿½
+	// Êµï¿½ï¿½Ó¦ï¿½ï¿½ï¿½Ð¿ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½ï¿½ß¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½JSONï¿½ï¿½È·ï¿½ï¿½ï¿½á¹¹
 	if body[0] == '[' {
 		return []interface{}{}
 	}
@@ -277,7 +277,7 @@ func (a *Action) fetchExample(endpoint string) (interface{}, error) {
 		// Convert the example JSON string (!!) to a map
 		example := checkJSONType([]byte(responseExample.Example))
 		if example == nil {
-			return nil, fmt.Errorf("ÎÞ·¨È·¶¨JSONÀàÐÍ£º¿ÕÊäÈë")
+			return nil, fmt.Errorf("ï¿½Þ·ï¿½È·ï¿½ï¿½JSONï¿½ï¿½ï¿½Í£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")
 		}
 
 		err := json.Unmarshal([]byte(responseExample.Example), &example)

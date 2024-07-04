@@ -148,7 +148,7 @@ func (c *Client) Call(ctx context.Context, method string, u string, v interface{
 		}
 	} else {
 		encoder := form.NewEncoder()
-		values, err := encoder.Encode(opt)
+		values, err := encoder.Encode(opt[0])
 		if err != nil {
 			return nil, fmt.Errorf("could not encode form values: %v", err)
 		}
@@ -159,15 +159,6 @@ func (c *Client) Call(ctx context.Context, method string, u string, v interface{
 	}
 
 	isText := false
-	val := reflect.ValueOf(v)
-	if val.Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("v must be a pointer type")
-	}
-	res := val.Elem()
-	if res.Kind() == reflect.String {
-		req.Header.Set("Accept", "text/plain")
-		isText = true
-	}
 
 	resp, err := c.Do(req)
 	if err != nil {
@@ -177,14 +168,18 @@ func (c *Client) Call(ctx context.Context, method string, u string, v interface{
 	if v != nil {
 		defer resp.Body.Close()
 
+		res := reflect.ValueOf(v).Elem()
+		if res.Kind() == reflect.String {
+			isText = true
+		}
+
 		if isText {
 			buf := new(strings.Builder)
 			_, err := io.Copy(buf, resp.Body)
 			if err != nil {
 				return resp, fmt.Errorf("could not read response body: %v", err)
 			}
-			w := val.Elem()
-			w.SetString(buf.String())
+			res.SetString(buf.String())
 		} else {
 			if err := json.NewDecoder(resp.Body).Decode(v); err != nil {
 				return nil, fmt.Errorf("could not decode response: %v", err)
