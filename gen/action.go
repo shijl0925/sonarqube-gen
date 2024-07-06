@@ -230,15 +230,15 @@ func (a *Action) responseAllStruct(collection Field) *Statement {
 	return Empty()
 }
 
-// checkJSONType ��̬�ж�JSON�ַ��������ͣ���������Ӧ�Ľӿ����͡�
+// checkJSONType 动态判断JSON字符串的类型，并返回相应的接口类型。
 func checkJSONType(body []byte) interface{} {
-	// Ԥ������Ƭ���µ�panic
+	// 预防空切片导致的panic
 	if len(body) == 0 {
 		return nil
 	}
 
-	// ʹ�ø���׳�ķ�ʽ�ж�JSON���ͣ������Լ���Ƿ���"["��ͷ��Ϊ��Ƭ�ļ�Ҫʾ��
-	// ʵ��Ӧ���п�����Ҫ�����ӵ��߼��������������JSON��ȷ���ṹ
+	// 使用更健壮的方式判断JSON类型，这里以检查是否以"["开头作为切片的简要示例
+	// 实际应用中可能需要更复杂的逻辑，比如解析部分JSON来确定结构
 	if body[0] == '[' {
 		return []interface{}{}
 	}
@@ -277,7 +277,7 @@ func (a *Action) fetchExample(endpoint string) (interface{}, error) {
 		// Convert the example JSON string (!!) to a map
 		example := checkJSONType([]byte(responseExample.Example))
 		if example == nil {
-			return nil, fmt.Errorf("�޷�ȷ��JSON���ͣ�������")
+			return nil, fmt.Errorf("无法确定JSON类型：空输入")
 		}
 
 		err := json.Unmarshal([]byte(responseExample.Example), &example)

@@ -150,13 +150,15 @@ func (s *Service) postServiceFunc(action Action, endpoint string) *Statement {
 
 	// add return type based on whether we expect a response
 	if action.HasResponseExample {
-		// (*<response type>, error)
+		// (*<response type>, *http.Response, error)
 		statement.Parens(
-			Op("*").Qual(qualifier(endpoint), action.responseTypeName()).Op(",").Error(),
+			Op("*").Qual(qualifier(endpoint), action.responseTypeName()).Op(",").Op("*").Qual("net/http", "Response").Op(",").Error(),
 		)
 	} else {
-		// error
-		statement.Error()
+		// *http.Response, error
+		statement.Parens(
+			Op("*").Qual("net/http", "Response").Op(",").Error(),
+		)
 	}
 
 	// function body
@@ -173,8 +175,8 @@ func (s *Service) postServiceFunc(action Action, endpoint string) *Statement {
 			Id("v").Op(":=").New(Qual(qualifier(endpoint), action.responseTypeName())),
 		),
 		Line(),
-		// _, err := s.client.Call("POST", u, r, v)
-		Id("_, err").Op(":=").Id("s").Dot("client").Dot("Call").Call(
+		// resp, err := s.client.Call("POST", u, r, v)
+		Id("resp, err").Op(":=").Id("s").Dot("client").Dot("Call").Call(
 			Id("ctx"),
 			Lit("POST"),
 			Id("u"),
@@ -259,13 +261,15 @@ func (s *Service) getServiceFunc(action Action, endpoint string) *Statement {
 
 	// add return type based on whether we expect a response
 	if action.HasResponseExample {
-		// (*<response type>, error)
+		// (*<response type>, *http.Response, error)
 		statement.Parens(
-			Op("*").Qual(qualifier(endpoint), action.responseTypeName()).Op(",").Error(),
+			Op("*").Qual(qualifier(endpoint), action.responseTypeName()).Op(",").Op("*").Qual("net/http", "Response").Op(",").Error(),
 		)
 	} else {
-		// error
-		statement.Error()
+		// *http.Response, error
+		statement.Parens(
+			Op("*").Qual("net/http", "Response").Op(",").Error(),
+		)
 	}
 
 	// function body
@@ -282,8 +286,8 @@ func (s *Service) getServiceFunc(action Action, endpoint string) *Statement {
 			Id("v").Op(":=").New(Qual(qualifier(endpoint), action.responseTypeName())),
 		),
 		Line(),
-		// _, err := s.client.Call("GET", u, r, v)
-		Id("_, err").Op(":=").Id("s").Dot("client").Dot("Call").Call(
+		// resp, err := s.client.Call("GET", u, r, v)
+		Id("resp, err").Op(":=").Id("s").Dot("client").Dot("Call").Call(
 			Id("ctx"),
 			Lit("GET"),
 			Id("u"),
@@ -296,7 +300,7 @@ func (s *Service) getServiceFunc(action Action, endpoint string) *Statement {
 		),
 
 		//if err != nil {
-		//	return nil, err
+		//	return nil, resp, err
 		//}
 		ifErrorReturn(
 			action.HasResponseExample,
@@ -368,11 +372,11 @@ func (s *Service) getAllServiceFunc(action Action, endpoint string, field Field)
 
 	loopBody := &Statement{}
 	loopBody.Add(
-		//	res, err := s.<action id>(r, p)
+		//	res, _, err := s.<action id>(r, p)
 		//	if err != nil {
 		//		return nil, fmt.Errorf("error during <action id>All: %+v", err)
 		//	}
-		Id("res").Op(",").Err().Op(":=").Id("s").Dot(action.serviceFuncName()).Call(Id("ctx"), Id("r"), Id("p")),
+		Id("res").Op(",").Id("_").Op(",").Err().Op(":=").Id("s").Dot(action.serviceFuncName()).Call(Id("ctx"), Id("r"), Id("p")),
 		ifError(action, fmt.Sprintf("error during call to %s.%s: %%+v", endpoint, action.serviceFuncName())),
 	)
 

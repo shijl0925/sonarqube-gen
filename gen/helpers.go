@@ -88,20 +88,20 @@ func ifTrueGenOrNil(ok bool, statement *Statement) *Statement {
 func ifErrorReturn(ok bool) *Statement {
 	if ok {
 		return If(Err().Op("!=").Nil()).Block(
-			Return(Nil().Op(",").Op("err")),
+			Return(Nil().Op(",").Op("resp").Op(",").Op("err")),
 		)
 	} else {
 		return If(Err().Op("!=").Nil()).Block(
-			Return(Err()),
+			Return(Op("resp").Op(",").Op("err")),
 		)
 	}
 }
 
 func genReturnWithError(hasRetVal bool, retId string) *Statement {
 	if hasRetVal {
-		return Return(Id(retId).Op(",").Nil())
+		return Return(Id(retId).Op(",").Id("resp").Op(",").Nil())
 	} else {
-		return Return(Nil())
+		return Return(Id("resp").Op(",").Nil())
 	}
 }
 
