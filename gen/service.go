@@ -133,10 +133,10 @@ func (s *Service) postServiceFunc(action Action, endpoint string) *Statement {
 	if action.DeprecatedSince != "" {
 		comment += fmt.Sprintf("\n// Deprecated since %s", action.DeprecatedSince)
 	}
-	if action.ChangeLog != nil {
-		comment += "\n// Changelog:"
+	if action.ChangeLog != nil && len(action.ChangeLog) > 0 {
+		comment += "\n// Changelog:\n//"
 		for _, change := range action.ChangeLog {
-			comment += fmt.Sprintf("\n//   %s: %s", change.Version, replaceTags(change.Description))
+			comment += fmt.Sprintf("\n//\t%s: %s", change.Version, replaceTags(change.Description))
 		}
 	}
 	statement := Comment(comment).Line()
@@ -243,10 +243,10 @@ func (s *Service) getServiceFunc(action Action, endpoint string) *Statement {
 	if action.DeprecatedSince != "" {
 		comment += fmt.Sprintf("\n// Deprecated since %s", action.DeprecatedSince)
 	}
-	if action.ChangeLog != nil {
-		comment += "\n// Changelog:"
+	if action.ChangeLog != nil && len(action.ChangeLog) > 0 {
+		comment += "\n// Changelog:\n//"
 		for _, change := range action.ChangeLog {
-			comment += fmt.Sprintf("\n//   %s: %s", change.Version, replaceTags(change.Description))
+			comment += fmt.Sprintf("\n//\t%s: %s", change.Version, replaceTags(change.Description))
 		}
 	}
 	statement := Comment(comment).Line()

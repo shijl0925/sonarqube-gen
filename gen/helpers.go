@@ -135,6 +135,8 @@ func replaceTags(str string) string {
 		"<li>", " * ",
 		"</li>", "\n// ",
 		"</ul>", "",
+		"<ol>", "\n// ",
+		"</ol>", "",
 	)
 	return repl.Replace(str)
 }
