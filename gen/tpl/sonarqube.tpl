@@ -143,8 +143,19 @@ func (c *Client) Call(ctx context.Context, method string, u string, v interface{
 			return nil, fmt.Errorf("could not create request: %v", err)
 		}
 	} else {
-		encoder := form.NewEncoder()
-		values, err := encoder.Encode(opt[0])
+		values := make(url.Values)
+
+		for _, o := range opt {
+			encoder := form.NewEncoder()
+			vs, err := encoder.Encode(o)
+			if err != nil {
+				return nil, fmt.Errorf("could not encode form values: %v", err)
+			}
+			for k, v := range vs {
+				values[k] = append(values[k], v...)
+			}
+		}
+
 		if err != nil {
 			return nil, fmt.Errorf("could not encode form values: %v", err)
 		}
