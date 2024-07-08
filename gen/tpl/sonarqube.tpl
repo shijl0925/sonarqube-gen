@@ -7,6 +7,7 @@ import (
 	"github.com/go-playground/form/v4"
 	"github.com/google/go-querystring/query"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -133,7 +134,8 @@ func (c *Client) Call(ctx context.Context, method string, u string, v interface{
 		for _, o := range opt {
 			urlStr, err := addOptions(u, o)
 			if err != nil {
-				return nil, err
+				log.Printf("could not Parse query values: %v", err)
+				continue
 			}
 			u = urlStr
 		}
@@ -149,7 +151,8 @@ func (c *Client) Call(ctx context.Context, method string, u string, v interface{
 			encoder := form.NewEncoder()
 			vs, err := encoder.Encode(o)
 			if err != nil {
-				return nil, fmt.Errorf("could not encode form values: %v", err)
+				log.Printf("could not encode form values: %v", err)
+				continue
 			}
 			for k, v := range vs {
 				values[k] = append(values[k], v...)
