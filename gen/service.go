@@ -391,9 +391,8 @@ func (s *Service) getAllServiceFunc(action Action, endpoint string, field Field)
 		//	}
 		If(Id("res").Dot(action.pagingFuncName()).Call().Dot("End").Call()).Block(
 			Break(),
-		).Else().Block(
-			Id("p").Dot("P").Op("++"),
 		),
+		Id("p").Dot("P").Op("++"),
 	)
 
 	//	for {
